@@ -1,0 +1,105 @@
+*vim-test-vitest5.txt*	vim-test runner for Vitest 5+
+
+==============================================================================
+CONTENTS                                          *vim-test-vitest5-contents*
+
+  1. Introduction ............................ |vim-test-vitest5-introduction|
+  2. Requirements ............................ |vim-test-vitest5-requirements|
+  3. Configuration ........................... |vim-test-vitest5-configuration|
+  4. Options ................................. |vim-test-vitest5-options|
+  5. Limitations ............................. |vim-test-vitest5-limitations|
+  6. License ................................. |vim-test-vitest5-license|
+
+==============================================================================
+1. Introduction                               *vim-test-vitest5-introduction*
+
+vim-test-vitest5 adds a `vitest5` runner to vim-test for Vitest 5 or later.
+
+Since Vitest 5, `-t` (`--testNamePattern`) is matched against the test's full
+name with the suite chain and the test name joined by ' > ' (for example
+`math > adds`). Before Vitest 5, they were joined with a single space
+(`math adds`).
+
+vim-test's built-in `vitest` runner joins the names with a single space, so
+|:TestNearest| on a test inside `describe` matches nothing on Vitest 5. The
+`vitest5` runner joins them with ' > '. Everything else behaves the same as
+the built-in `vitest` runner.
+
+  https://vitest.dev/config/testnamepattern
+  https://vitest.dev/guide/migration
+
+==============================================================================
+2. Requirements                               *vim-test-vitest5-requirements*
+
+- vim-test (https://github.com/vim-test/vim-test)
+- Vitest 5 or later in your project
+
+==============================================================================
+3. Configuration                             *vim-test-vitest5-configuration*
+
+Register the runner and select it for JavaScript: >vim
+
+  let g:test#custom_runners = {'JavaScript': ['Vitest5']}
+  let g:test#javascript#runner = 'vitest5'
+<
+If you already have |g:test#custom_runners|, add 'Vitest5' to its
+'JavaScript' list.
+
+Vitest 4 or earlier still uses space-joined names. Use the built-in `vitest`
+runner for those projects: >vim
+
+  let g:test#javascript#runner = 'vitest'
+<
+==============================================================================
+4. Options                                         *vim-test-vitest5-options*
+
+                                          *g:test#javascript#vitest5#options*
+g:test#javascript#vitest5#options
+	Extra arguments, as for other vim-test runners.
+	Default: not set (no extra arguments) >vim
+
+	  let g:test#javascript#vitest5#options = {
+	    \ 'nearest': '--reporter=verbose',
+	    \}
+<
+                                       *g:test#javascript#vitest5#executable*
+g:test#javascript#vitest5#executable
+	Command used to run Vitest. When not set, `node_modules/.bin/vitest`
+	is used if it exists, then `npx vitest`, then `vitest`.
+	Default: not set >vim
+
+	  let g:test#javascript#vitest5#executable = 'pnpm vitest'
+<
+                                     *g:test#javascript#vitest5#file_pattern*
+g:test#javascript#vitest5#file_pattern
+	Pattern for test files.
+	Default: `'\v(__tests__/.*|(spec|test))\.(js|jsx|ts|tsx)$'`
+
+==============================================================================
+5. Limitations                                 *vim-test-vitest5-limitations*
+
+- `it.each` / `test.each` have the same limitations as the built-in runner.
+  A multi-line `it.each([...])('...')` is not detected as the nearest test,
+  and placeholders such as `%s` or `%d` in the name do not match the
+  expanded test names.
+- A test name containing ' > ' cannot be told apart from the separator.
+  For example, both tests below have the same full name `a > b > c`, so
+  |:TestNearest| on either of them runs both: >typescript
+
+    describe('a', () => {
+      test('b > c', () => {}) // full name: a > b > c
+    })
+    describe('a > b', () => {
+      test('c', () => {}) // full name: a > b > c
+    })
+<
+
+==============================================================================
+6. License                                         *vim-test-vitest5-license*
+
+MIT License. See the LICENSE file.
+
+autoload/test/javascript/vitest5.vim is based on
+autoload/test/javascript/vitest.vim from vim-test (MIT License).
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
